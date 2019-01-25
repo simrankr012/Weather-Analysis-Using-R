@@ -1,0 +1,95 @@
+
+#Writing S3 methods
+##### Que 1 Load in the data as an object called DublinAirport. Assign to the DublinAiport object the classes WeatherData and data.frame.
+```{r}
+DublinAirport<-read.csv('2018_09_Dublin_Airport.csv',header=TRUE, sep='\t')
+class(DublinAirport)<-'WeatherData' # assigning WeatherData class to Dublin Airport variable
+class(DublinAirport) # printing the class of Dublin Airport variable
+
+class(DublinAirport)<-'data.frame'
+class(DublinAirport) # printing the class of Dublin Airport variable
+
+```
+##### Que 2. 2. Write an S3 summary method for an object of class WeatherData which produces the following statistical summaries for the rain, maxtp, mintp variables: mean, standard deviation, minimum, maximum. 
+```{r}
+summary.WeatherData <- function(weather_param) {
+ print("Summary for Rain")
+cat("Mean of Rain attribute in Weather data :",mean(data.matrix(weather_param[2])))
+cat("\nStandard Deviation of Rain attribute of Weather data:",sd(data.matrix(weather_param[2])))
+cat("\nMinimum of Rain attribute of Weather data:",min(data.matrix(weather_param[2])))
+cat("\nMaximum of Rain attribute of Weather data:",max(data.matrix(weather_param[2])))
+
+cat("\n\nSummary for maxtp attribute")
+cat("\nMean of Maxtp:",mean(data.matrix(weather_param[3])))
+cat("\nStandard Deviation of Maxtp:",sd(data.matrix(weather_param[3])))
+cat("\nMinimum of Maxtp attribute of Weather data:",min(data.matrix(weather_param[3])))
+cat("\nMaximum of Maxtp attribute of Weather data:",max(data.matrix(weather_param[3])))
+
+cat("\n\nSummary for mintp attribute")
+cat("\nMean of Mintp attribute of Weather data:",mean(data.matrix(weather_param[4])))
+cat("\nStandard Deviation of Mintp attribute of Weather data:",sd(data.matrix(weather_param[4])))
+cat("\nMinimum of Mintp attribute of Weather data:",min(data.matrix(weather_param[4])))
+cat("\nMaximum of Mintp attribute of Weather data:",max(data.matrix(weather_param[4])))
+}
+summary.WeatherData(DublinAirport)
+```
+
+##### Que 3. Download the new data set 2018 09 Cork Airport.csv from Blackboard, assign the classes WeatherData and data.frame to the object containing the Cork data, and test your function on it.Interpret your findings for Dublin and Cork Airports
+```{r}
+
+CorkAirport <- read.csv('2018_09_Cork_Airport.csv',header=TRUE,sep='\t')
+class(CorkAirport) <- 'WeatherData'
+class(CorkAirport) <- 'data.frame'
+class(CorkAirport)
+```
+##### Calculating the summary of Rain, Maxtp and Mintp attributes for Cork Airport
+```{r}
+summary.WeatherData(CorkAirport)
+```
+##### Observations: Mean of Rain attribute is higher in case of Cork Airport while Maximum of Maxtp attribute is higher in case of Dublin Airport. It is evident that minimum of Mintp attribute is smaller in case of Dublin Airport.
+
+
+#Create an S3 plot method for the class WeatherData that produces the following plots.
+```{r}
+drawPlot.WeatherData <- function(DublinAirport,DAtempTitle, DailyPrecpTitle){
+
+#  install.packages("ggplot2")
+  library(ggplot2)
+  
+  plt<-ggplot(DublinAirport, aes(DublinAirport$date,group=1)) + #specifying attribute for x axis
+  geom_point(aes(y = DublinAirport[,3], color = "Red")) + #plotting the maximum point of maxtp attribute
+geom_line(aes(y = DublinAirport[,3], color = "Red")) + #line plot for maxtp column
+geom_point(aes(y = DublinAirport[,4], color = "Blue")) +#plotting the minimum point of mintp attribute
+geom_line(aes(y = DublinAirport[,4], color = "Blue")) + #line plot for mintp attribute
+
+    labs(x = "Dates on which Temperature is Recorded", y = "Temperature on Specific Dates")+ #assigning labels to x and y axis 
+    theme(legend.title=element_text(color="white"),legend.text = element_text(colour="white", size=10, face="bold"),legend.background = element_rect(fill="black",size=0.5, linetype="solid",colour="white"))+ # formatting the legend
+    #to change the color of the line chart, change the color names in values vector of scale color manual parameter
+    scale_color_manual(values=c('Blue'='Blue','Red'='Red'), name="Air Temperature",
+    labels=c("Minimum Temperature","Maximum Temperature"))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
+    geom_vline(aes(xintercept=c(1:30)),linetype="dashed",colour="gray",size=0.7)+ #including a grey vertical dotted line for each day to clearly identify the day corresponding to each couple of points
+    annotate("text", x = DublinAirport[which.max(DublinAirport[,3])+1,1], y = max(DublinAirport
+[,3])+2.5, label = "Max Temp") +#highest maximum temperature registered 
+geom_point(data=DublinAirport, aes(x=DublinAirport[which.max(DublinAirport[,3]),1],
+                                   
+      y=max(DublinAirport[,3])), colour="red", size=3) +
+annotate("text", x = DublinAirport[which.min(DublinAirport[,4])+1,1], y = min(DublinAirport
+[,4])+2.5, label = "Min Temp")+
+geom_point(data=DublinAirport, aes(x=DublinAirport[which.min(DublinAirport[,4]),1], y=min(DublinAirport[,4])), colour="blue", size=3)#lowest minimum temperature registered  
+   
+  
+  plt2 <-ggplot(DublinAirport, aes(x=DublinAirport[,1],y = DublinAirport[,2])) +
+geom_bar(stat = "identity") +
+theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + #fitting the labels on x axis
+labs(x = "Date", y = "Precipitation Amount (mm)", title =DailyPrecpTitle) +
+geom_bar(data=data.frame(DublinAirport[which.max(DublinAirport[,2]),1],DublinAirport[which.max(DublinAirport[,2]),2]),aes(DublinAirport[which.max(DublinAirport[,2]),1],DublinAirport[which.max(DublinAirport[,2]),2]),fill="Red", stat="identity")+ # coloring the maximum bar with Red
+labs(x = "Dates on whcih Precipitation Amount is Recorded ", y = "Precipitation Amount (mm)", title = DailyPrecpTitle)
+library("gridExtra")
+grid.arrange(plt, plt2)
+}
+print(drawPlot.WeatherData(DublinAirport, "Dublin Daily Air Temparature Multiple Line Chart for September 2018", "Dublin Daily Precipitation Amount Bar Chart for September 2018"))
+```
+```{r}
+drawPlot.WeatherData(CorkAirport,"Cork Daily Air Temparature Multiple Line Chart for September 2018", "Cork Daily Precipitation Amount Bar Chart for September 2018")
+```
